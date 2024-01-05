@@ -1,6 +1,7 @@
 const userModel = require("../models/userModel");
 const jwt = require("jsonwebtoken");
 const asyncHandler = require("express-async-handler");
+const bcrypt = require("bcryptjs");
 
 //generate the token
 const generateToken = (id) => {
@@ -28,74 +29,129 @@ const registerUser = asyncHandler(async (req, res) => {
   } else {
     //rest data
     const user = new userModel(req.body);
+    //generate token
     const token = generateToken(user._id);
+    //send hhtp-only cookie
+    res.cookie("token", token, {
+      path: "/",
+      httpOnly: true,
+      expires: new Date(Date.now() + 1000 * 864000), // 1 day
+      sameSite: "none",
+      secure: true,
+    });
+
     await user.save();
     return res.status(201).send({
       success: true,
       message: "User successfully registered",
       token,
-      user
+      user,
     });
   }
 });
-// //login
-// const loginController = async (req, res) => {
-//   const { email, password } = req.body;
-//   try {
-//     const user = await userModel.findOne({ email: email });
-//     if (!user) {
-//       return res.status(404).send({
-//         success: false,
-//         message: "User not found",
-//       });
-//     }
-//     //role check
-//     if(user.role !== req.body.role) {
-//       return res.status(500).send({
-//         success: false,
-//         message: "Role does not match",
-//       });
-//     }
-//     //validation with compare password
-//     const comparePassword = await bcrypt.compare(password, user.password);
-//     if (!comparePassword) {
-//       return res.status(500).send({
-//         success: false,
-//         message: "Password is incorrect",
-//       });
-//     }
-//     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
-//       expiresIn: "1d",
-//     });
-//     return res.status(200).send({
-//       success: true,
-//       message: `Welcome ${user.role}`,
-//       token,
-//       user,
-//     });
-//   } catch (error) {
-//     return res.status(500).send({
-//       success: false,
-//       message: "Error in login API",
-//       error: error.message,
-//     });
-//   }
-// };
-// //current user get
-// const currentUserController = async (req, res) => {
-//   try {
-//     const currentUser = await userModel.findOne({_id:req.body.userId});
-//     return res.status(200).send({
-//       success: true,
-//       currentUser
-//     })
-//   } catch (error) {
-//     return res.status(500).send({
-//       success: false,
-//       message: "Error in login API",
-//       error: error.message
-//     });
-//   }
-// };
+//login
+const loginUser = asyncHandler(async (req, res) => {
+  const { email, password } = req.body;
+  const user = await userModel.findOne({ email });
+  if (!email || !password) {
+    res.status(400);
+    throw new Error("Requird authentication");
+  }
+  if (!user) {
+    res.status(404);
+    throw new Error("User not found");
+  }
 
-module.exports = { registerUser };
+  //validation with compare password
+  const comparePassword = await bcrypt.compare(password, user.password);
+  if (!comparePassword) {
+    return res.status(500).send({
+      success: false,
+      message: "Password is incorrect",
+    });
+  }
+  //generate token
+  const token = generateToken(user._id);
+  //send hhtp-only cookie
+  res.cookie("token", token, {
+    path: "/",
+    httpOnly: true,
+    expires: new Date(Date.now() + 1000 * 864000), // 1 day
+    sameSite: "none",
+    secure: true,
+  });
+  return res.status(200).send({
+    success: true,
+    message: `Welcome ${user.name}`,
+    token,
+    user,
+  });
+});
+// logout user
+const logoutUser = asyncHandler(async (req, res) => {
+  res.cookie("token", "", {
+    path: "/",
+    httpOnly: true,
+    expires: new Date(0), // 1 day
+    sameSite: "none",
+    secure: true,
+  });
+  return res.status(200).json({
+    message: "User logged out successfully",
+  });
+});
+//get user profile
+const myProfile = asyncHandler(async (req, res) => {
+  const user = await userModel.findById(req.user._id);
+  if (user) {
+    res.status(200).json({
+      user,
+    });
+  } else {
+    res.status(404);
+    throw new Error("User not found");
+  }
+});
+//login status
+const loginStatus = asyncHandler(async (req, res) => {
+  const token = req.cookies.token;
+  if (!token) {
+    return res.json(false);
+  }
+  //verify token
+  const verified = jwt.verify(token, process.env.JWT_SECRET);
+  if (verified) {
+    return res.json(true);
+  }
+  return res.json(false);
+});
+// update profile
+const updateUser = asyncHandler(async (req, res) => {
+  
+  const user = await userModel.findById(req.user._id);
+  if (user) {
+    const { name, email, photo, phone, bio } = user;
+    user.email = email;
+    user.name = req.body.name || name;
+    user.phone = req.body.phone || phone;
+    user.bio = req.body.bio || bio;
+    user.photo = req.body.photo || photo;
+
+    const updatedUser = await user.save();
+    res.status(200).json({
+      updatedUser,
+    });
+  } else {
+    res.status(404);
+    throw new Error("User not found");
+  }
+});
+
+module.exports = {
+  registerUser,
+  loginUser,
+  logoutUser,
+  myProfile,
+  loginStatus,
+  updateUser,
+};
