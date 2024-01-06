@@ -174,7 +174,7 @@ const changePassword = asyncHandler(async (req, res) => {
     throw new Error("Old password is incorrect");
   }
 });
-// change password
+// reset password
 const resetPassword = asyncHandler(async (req, res) => {
   const { email } = req.body;
   const user = await userModel.findOne({ email });
@@ -189,6 +189,7 @@ const resetPassword = asyncHandler(async (req, res) => {
   }
   //create reset token
   let resetToken = crypto.randomBytes(32).toString("hex") + user._id;
+  console.log(resetToken);
   //Hash token before saving to db
   const hashToken = crypto
     .createHash("sha256")
@@ -230,6 +231,34 @@ const resetPassword = asyncHandler(async (req, res) => {
     throw new Error("Email not sent , please try again");
   }
 });
+// forgot password
+const forgotPassword = asyncHandler(async (req, res) => {
+  const { password } = req.body;
+  const { resetToken } = req.params;
+
+  //hash token and compare to token in DB
+  const hashToken = crypto
+    .createHash("sha256")
+    .update(resetToken)
+    .digest("hex");
+
+  //find token in DB
+  const userToken = await tokenModel.findOne({
+    token: hashToken,
+    expiredAt: { $gt: Date.now() },
+  });
+  if(!userToken) {
+    res.status(401);
+    throw new Error("Expired or Invalid token");
+  }
+  //Find User
+  const user = await userModel.findOne({_id:userToken.userId})
+  user.password = password
+  await user.save()
+  res.status(200).json({
+    message: "Password reset successfully"
+  })
+});
 
 module.exports = {
   registerUser,
@@ -240,4 +269,5 @@ module.exports = {
   updateUser,
   changePassword,
   resetPassword,
+  forgotPassword,
 };
