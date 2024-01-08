@@ -11,11 +11,15 @@ const bodyParser = require("body-parser");
 
 const cookieParser = require("cookie-parser");
 
+const path = require("path");
+
 //midlewares
 app.use(express.json());
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 app.use(bodyParser.json());
+//file uploader path set
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 app.use(cors());
 
