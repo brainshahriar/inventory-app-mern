@@ -178,7 +178,7 @@ const changePassword = asyncHandler(async (req, res) => {
 const resetPassword = asyncHandler(async (req, res) => {
   const { email } = req.body;
   const user = await userModel.findOne({ email });
-  if (req.user.email !== req.body.email || !user) {
+  if (!user) {
     res.status(404);
     throw new Error("Please enter your email address");
   }

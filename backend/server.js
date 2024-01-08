@@ -26,6 +26,7 @@ app.use(cors());
 const errorHandler = require("./middleware/errorMiddleware");
 const userRoutes = require("./routes/userRoutes");
 const productRoutes = require("./routes/productRoutes");
+const contactRoutes = require("./routes/contactRoutes");
 
 //db connection
 const dbConnection = require("./config/db");
@@ -43,6 +44,7 @@ dbConnection();
 //routes
 app.use("/api/users", userRoutes);
 app.use("/api/products", productRoutes);
+app.use("/api/contact", contactRoutes);
 
 //error middleware
 app.use(errorHandler);
