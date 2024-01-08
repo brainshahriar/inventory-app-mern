@@ -8,32 +8,32 @@ const productSchema = mongoose.Schema(
       ref: "user",
     },
     name: {
-      name: String,
+      type: String,
       required: [true, "Please add a name"],
       trim: true,
     },
     sku: {
-      name: String,
+      type: String,
       required: true,
       trim: true,
     },
     category: {
-      name: String,
+      type: String,
       required: [true, "Please add a category"],
       trim: true,
     },
     quantity: {
-      name: String,
+      type: String,
       required: [true, "Please add a quantity"],
       trim: true,
     },
     price: {
-      name: String,
+      type: String,
       required: [true, "Please add a price"],
       trim: true,
     },
     description: {
-      name: String,
+      type: String,
       required: [true, "Please add a description"],
       trim: true,
     },
