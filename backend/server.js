@@ -21,7 +21,12 @@ app.use(bodyParser.json());
 //file uploader path set
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-app.use(cors());
+app.use(
+  cors({
+    origin: ["http://localhost:3000"],
+    credentials: true,
+  })
+);
 
 const errorHandler = require("./middleware/errorMiddleware");
 const userRoutes = require("./routes/userRoutes");
