@@ -12,7 +12,7 @@ const initialState = {
     bio:"",
     photo:""
   },
-  userID:""
+  // userID:""
 };
 
 const authSlice = createSlice({

@@ -18,7 +18,6 @@ export const registerUser = async (userData) => {
       { withCredentials: true }
     );
     if (response.status === 201) {
-      console.log('assd')
       toast.success("User Registered Successfully");
     }
     return response.data;
@@ -60,6 +59,22 @@ export const logoutUser = async () => {
     if (response.status === 200) {
       toast.success("Logout Successfully");
     }
+  } catch (error) {
+    const message =
+      (error.response && error.response.data && error.response.data.message) ||
+      error.message ||
+      error.toString();
+    toast.error(message);
+  }
+};
+
+//Get login statys
+export const getLoginStatus = async () => {
+  try {
+    const response = await axios.get(
+      `${BACKEND_URL}/api/users/login-status`
+    );
+    return response.data;
   } catch (error) {
     const message =
       (error.response && error.response.data && error.response.data.message) ||
