@@ -1,12 +1,11 @@
 import React, { useState } from "react";
+import styles from "./auth.module.scss";
 import { TiUserAddOutline } from "react-icons/ti";
-import { Link } from "react-router-dom";
-import styles from "./Auth.module.scss";
 import Card from "../../components/card/Card";
 import { toast } from "react-toastify";
 import { registerUser, validateEmail } from "../../services/authService";
-import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
+import { Link, useNavigate } from "react-router-dom";
 import { SET_LOGIN, SET_NAME } from "../../redux/features/auth/authSlice";
 import Loader from "../../components/loader/Loader";
 
@@ -14,36 +13,37 @@ const initialState = {
   name: "",
   email: "",
   password: "",
-  passwordConfirmation: "",
+  password2: "",
 };
 
 const Register = () => {
-  const [formData, setFormData] = useState(initialState);
-  const [isLoading, setIsLoading] = useState(false);
-  const { name, email, password, passwordConfirmation } = formData;
-
-  const dispatch = useDispatch()
+  const dispatch = useDispatch();
   const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
+  const [formData, setformData] = useState(initialState);
+  const { name, email, password, password2 } = formData;
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    setformData({ ...formData, [name]: value });
   };
 
   const register = async (e) => {
     e.preventDefault();
+
     if (!name || !email || !password) {
       return toast.error("All fields are required");
     }
-    if (!password || !passwordConfirmation) {
-      return toast.error("Passwords do not match");
-    }
     if (password.length < 6) {
-      return toast.error("Password must be at least 6 characters");
+      return toast.error("Passwords must be up to 6 characters");
     }
     if (!validateEmail(email)) {
       return toast.error("Please enter a valid email");
     }
+    if (password !== password2) {
+      return toast.error("Passwords do not match");
+    }
+
     const userData = {
       name,
       email,
@@ -52,20 +52,19 @@ const Register = () => {
     setIsLoading(true);
     try {
       const data = await registerUser(userData);
-      console.log(data)
-      dispatch(SET_LOGIN(true));
-      dispatch(SET_NAME(data.user.name));
-      navigate('/dashboard');
+      // console.log(data);
+      await dispatch(SET_LOGIN(true));
+      await dispatch(SET_NAME(data.name));
+      navigate("/dashboard");
+      setIsLoading(false);
     } catch (error) {
       setIsLoading(false);
-      console.log(error.message);
     }
   };
+
   return (
     <div className={`container ${styles.auth}`}>
-      {
-        isLoading && <Loader/>
-      }
+      {isLoading && <Loader />}
       <Card>
         <div className={styles.form}>
           <div className="--flex-center">
@@ -102,8 +101,8 @@ const Register = () => {
               type="password"
               placeholder="Confirm Password"
               required
-              name="passwordConfirmation"
-              value={passwordConfirmation}
+              name="password2"
+              value={password2}
               onChange={handleInputChange}
             />
             <button type="submit" className="--btn --btn-primary --btn-block">

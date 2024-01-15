@@ -15,15 +15,16 @@ const SidebarItem = ({ item, isOpen }) => {
           expandMenu ? "sidebar-item s-parent open" : "sidebar-item s-parent"
         }
       >
-        <div
-          className="sidebar-title"
-          onClick={() => setExpandMenu(!expandMenu)}
-        >
+        <div className="sidebar-title">
           <span>
             {item.icon && <div className="icon">{item.icon}</div>}
-            {isOpen && <div className="sidebarMenu">{item.title}</div>}
+            {isOpen && <div>{item.title}</div>}
           </span>
-          <MdKeyboardArrowRight size={25} className="arrow-icon" />
+          <MdKeyboardArrowRight
+            size={25}
+            className="arrow-icon"
+            onClick={() => setExpandMenu(!expandMenu)}
+          />
         </div>
         <div className="sidebar-content">
           {item.childrens.map((child, index) => {
