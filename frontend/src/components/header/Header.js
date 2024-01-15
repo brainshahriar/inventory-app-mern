@@ -20,7 +20,9 @@ const Header = () => {
       <div className="--flex-between">
         <h3>
           <span className="--fw-thin">Welcome, </span>
-          <span className="--color-danger">{name}</span>
+          <span className="--color-danger">
+            {name ? name : localStorage.getItem("name")}
+          </span>
         </h3>
         <button onClick={logout} className="--btn --btn-danger">
           Logout
